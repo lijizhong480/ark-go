@@ -1,0 +1,39 @@
+package main
+
+import (
+	"context"
+	"errors"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"syscall"
+	"time"
+
+	"{{.Server}}/internal/server"
+)
+
+func main() {
+	addr := os.Getenv("HTTP_ADDR")
+	if addr == "" { addr = ":8080" }
+	shutdownSeconds := 10
+	if raw := os.Getenv("SHUTDOWN_TIMEOUT_SECONDS"); raw != "" {
+		parsed, err := strconv.Atoi(raw)
+		if err != nil || parsed < 1 { log.Fatalf("invalid SHUTDOWN_TIMEOUT_SECONDS: %q", raw) }
+		shutdownSeconds = parsed
+	}
+	httpServer := &http.Server{Addr: addr, Handler: server.Handler(), ReadHeaderTimeout: 5*time.Second}
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+	errCh := make(chan error, 1)
+	go func() { errCh <- httpServer.ListenAndServe() }()
+	select {
+	case <-ctx.Done():
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), time.Duration(shutdownSeconds)*time.Second)
+		defer cancel()
+		if err := httpServer.Shutdown(shutdownCtx); err != nil { log.Fatal(err) }
+	case err := <-errCh:
+		if !errors.Is(err, http.ErrServerClosed) { log.Fatal(err) }
+	}
+}

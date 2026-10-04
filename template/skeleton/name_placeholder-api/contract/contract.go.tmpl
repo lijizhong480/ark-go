@@ -1,0 +1,19 @@
+package contract
+
+const DemoPath = "/api/v1/demo"
+const HealthPath = "/health"
+
+type DemoRequest struct {
+	Name string `json:"name"`
+}
+
+type DemoData struct {
+	Message string `json:"message"`
+}
+
+type Response[T any] struct {
+	Code int `json:"code"`
+	Msg *string `json:"msg,omitempty"`
+	Timestamp int64 `json:"timestamp"`
+	Data *T `json:"data,omitempty"`
+}

@@ -1,0 +1,12 @@
+go 1.23
+
+use (
+	.
+	../../cache
+	../../core
+	../../web
+)
+
+replace github.com/lijizhong480/ark-go/cache v0.0.0 => ../../cache
+replace github.com/lijizhong480/ark-go/core v0.0.0 => ../../core
+replace github.com/lijizhong480/ark-go/web v0.0.0 => ../../web

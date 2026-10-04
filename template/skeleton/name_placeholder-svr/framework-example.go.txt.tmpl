@@ -1,0 +1,32 @@
+// Optional integration sketch. Move this into internal/bootstrap after
+// publishing core and web under their permanent module paths.
+// Add normal versioned requirements with go get; do not add relative replace.
+package bootstrap
+
+import (
+	"context"
+	"net"
+	"net/http"
+
+	"github.com/lijizhong480/ark-go/core/app"
+	arkweb "github.com/lijizhong480/ark-go/web"
+	"{{.Server}}/internal/server"
+)
+
+type HTTPComponent struct { Server *http.Server; listener net.Listener }
+
+func (c *HTTPComponent) Name() string { return "http" }
+func (c *HTTPComponent) Start(context.Context) error {
+	listener, err := net.Listen("tcp", c.Server.Addr)
+	if err != nil { return err }
+	c.listener = listener
+	go func() { _ = c.Server.Serve(listener) }()
+	return nil
+}
+func (c *HTTPComponent) Stop(ctx context.Context) error { return c.Server.Shutdown(ctx) }
+
+func NewApp(addr string) (*app.App, error) {
+	handler := arkweb.Chain(server.Handler(), arkweb.RequestContext)
+	component := &HTTPComponent{Server: &http.Server{Addr: addr, Handler: handler}}
+	return app.New(component)
+}

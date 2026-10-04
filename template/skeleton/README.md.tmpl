@@ -1,0 +1,7 @@
+# {{.Name}}
+
+`{{.Name}}-api` publishes the HTTP contract. `{{.Name}}-svr` is a separate Go module that imports it. The root `go.work` links both for local development; publish the API module before building the service outside this workspace.
+
+Run `go test ./...` from each module. Start the service with `cd {{.Name}}-svr && go run ./cmd/server`; configure `HTTP_ADDR` and `SHUTDOWN_TIMEOUT_SECONDS` with environment variables. Health is `GET /health`, and the sample endpoint is `POST /api/v1/demo`.
+
+`{{.Name}}-svr/framework-example.go.txt` shows optional explicit assembly with the independent Ark `core/app` and `web` modules. Once those modules are published under permanent paths, add their versioned requirements and move the example into `internal/bootstrap`. The generated service itself remains runnable with the standard library.

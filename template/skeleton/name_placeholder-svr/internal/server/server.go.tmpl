@@ -1,0 +1,35 @@
+package server
+
+import (
+	"encoding/json"
+	"net/http"
+	"strings"
+	"time"
+
+	"{{.API}}/contract"
+)
+
+func Handler() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET "+contract.HealthPath, func(w http.ResponseWriter, _ *http.Request) {
+		write(w, http.StatusOK, contract.Response[any]{Code: 0, Timestamp: time.Now().UnixMilli()})
+	})
+	mux.HandleFunc("POST "+contract.DemoPath, func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		var request contract.DemoRequest
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&request); err != nil || strings.TrimSpace(request.Name) == "" {
+			message := "name is required"
+			write(w, http.StatusOK, contract.Response[any]{Code: 100400, Msg: &message, Timestamp: time.Now().UnixMilli()})
+			return
+		}
+		data := contract.DemoData{Message: "hello " + request.Name}
+		write(w, http.StatusOK, contract.Response[contract.DemoData]{Code: 0, Timestamp: time.Now().UnixMilli(), Data: &data})
+	})
+	return mux
+}
+
+func write[T any](w http.ResponseWriter, status int, response contract.Response[T]) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(response)
+}

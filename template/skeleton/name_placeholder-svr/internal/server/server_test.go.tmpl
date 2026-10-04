@@ -1,0 +1,21 @@
+package server
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+)
+
+func TestHealthAndDemo(t *testing.T) {
+	h := Handler()
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/health", nil))
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), `"code":0`) { t.Fatalf("health: %d %s", w.Code, w.Body.String()) }
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/api/v1/demo", strings.NewReader(`{"name":"Ada"}`)))
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), `"message":"hello Ada"`) { t.Fatalf("demo: %d %s", w.Code, w.Body.String()) }
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest(http.MethodPost, "/api/v1/demo", strings.NewReader(`{}`)))
+	if w.Code != http.StatusOK || !strings.Contains(w.Body.String(), `"code":100400`) { t.Fatalf("invalid request: %d %s", w.Code, w.Body.String()) }
+}

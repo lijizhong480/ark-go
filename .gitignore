@@ -1,0 +1,11 @@
+.DS_Store
+**/.DS_Store
+.idea/
+.vscode/
+.env
+.env.*
+*.log
+dist/
+bin/
+
+.claude/

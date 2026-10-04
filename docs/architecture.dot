@@ -1,0 +1,48 @@
+digraph ArkGo {
+  graph [
+    label="ark-go 项目架构",
+    labelloc=t,
+    fontsize=30,
+    fontname="Arial Unicode MS",
+    fontcolor="#17253b",
+    bgcolor="white",
+    rankdir=TB,
+    pad=0.38,
+    nodesep=0.34,
+    ranksep=0.7,
+    splines=polyline
+  ];
+  node [shape=box, style="rounded,filled", color="#cbd5e1", penwidth=1.2,
+        fontname="Arial Unicode MS", fontsize=16, fontcolor="#17253b", margin="0.20,0.15"];
+  edge [color="#8090a7", penwidth=1.5, arrowsize=0.75,
+        fontname="Arial Unicode MS", fontsize=13, fontcolor="#4b5b73"];
+
+  caller [label="调用方 / 上游服务", fillcolor="#eef2f7"];
+  service [label="业务服务\n显式选择并装配组件", fillcolor="#dbeafe", color="#60a5fa", penwidth=2.0, fontsize=20];
+  caller -> service [label="HTTP / 消息"];
+
+  access [label="接入与调用\nweb · httpclient · openapi", fillcolor="#e0f2fe"];
+  foundation [label="基础能力\ncore · config · cache · executor", fillcolor="#e8f0ff"];
+  data [label="数据与消息\nmysql · mongodb · elasticsearch\nredis · kafka", fillcolor="#e7f5ed"];
+  platform [label="平台集成\napollo · nacos · xxl", fillcolor="#fff2df"];
+  governance [label="治理与观测\ntracing · metrics · prometheus\nsentinel · sentinel-gateway", fillcolor="#f1eaff"];
+
+  { rank=same; access; foundation; data; platform; governance; }
+  access -> foundation -> data -> platform -> governance [style=invis, weight=10];
+  service -> access [label="按需装配"];
+  service -> foundation;
+  service -> data;
+  service -> platform;
+  service -> governance;
+
+  external [label="外部服务\nMySQL · MongoDB · Elasticsearch · Redis · Kafka\nApollo · Nacos · XXL-JOB", fillcolor="#f3f5f8"];
+  data -> external [label="连接", minlen=2];
+  platform -> external [label="连接", minlen=2];
+
+  tooling [label="工程工具\ntemplate：生成 API / 服务项目\ndeploy-tools：构建、打包、启停", fillcolor="#f8fafc"];
+  tooling -> service [style=dashed, label="生成 / 部署", constraint=false];
+
+  note [shape=plaintext, label="实际跨组件编译依赖：web → core；httpclient → core。examples/service → core、web、cache。",
+        fontsize=13, fontcolor="#52627a"];
+  external -> note [style=invis];
+}

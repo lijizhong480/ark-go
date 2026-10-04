@@ -1,0 +1,28 @@
+go 1.23
+
+use (
+	./apollo
+	./cache
+	./config
+	./core
+	./deploy-tools
+	./elasticsearch
+	./executor
+	./httpclient
+	./kafka
+	./metrics
+	./mongodb
+	./mysql
+	./nacos
+	./openapi
+	./prometheus
+	./redis
+	./sentinel
+	./sentinel-gateway
+	./template
+	./tracing
+	./web
+	./xxl
+)
+
+replace github.com/lijizhong480/ark-go/core v0.0.0 => ./core
